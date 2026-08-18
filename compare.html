@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>소득별 비교 | 소득세법</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .compare-card{background:white;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.07);border-left:4px solid #1B5E20;}
+    .compare-item-title{font-size:0.95rem;font-weight:bold;color:#1B5E20;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #E8F5E9;}
+    .compare-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;}
+    .compare-col{border-radius:8px;padding:10px 12px;font-size:0.82rem;line-height:1.7;white-space:pre-line;}
+    .col-book{background:#E8F5E9;border-left:3px solid #2E7D32;}
+    .col-tax{background:#FFEBEE;border-left:3px solid #B71C1C;}
+    .col-adj{background:#E8F5E9;border-left:3px solid #1B5E20;grid-column:span 2;}
+    .col-label{font-size:0.72rem;font-weight:bold;margin-bottom:4px;display:block;}
+    .col-book .col-label{color:#2E7D32;} .col-tax .col-label{color:#B71C1C;} .col-adj .col-label{color:#1B5E20;}
+    .ch-filter-wrap{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;}
+    .ch-filter-btn{padding:7px 14px;border:1.5px solid #C5E1A5;border-radius:20px;font-size:0.8rem;font-weight:bold;cursor:pointer;white-space:nowrap;background:white;color:#1B5E20;font-family:inherit;flex-shrink:0;transition:all 0.15s;}
+    .ch-filter-btn.active{background:#1B5E20;color:white;border-color:#1B5E20;}
+    .quiz-toggle-wrap{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:#F9FBE7;border-radius:10px;border:1.5px solid #C5E1A5;}
+    .quiz-toggle-wrap label{font-size:0.88rem;font-weight:bold;color:#1B5E20;}
+    .toggle-switch{position:relative;width:46px;height:24px;cursor:pointer;}
+    .toggle-switch input{display:none;}
+    .toggle-slider{position:absolute;top:0;left:0;right:0;bottom:0;background:#CFD8DC;border-radius:24px;transition:0.3s;}
+    .toggle-slider::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;}
+    .toggle-switch input:checked+.toggle-slider{background:#1B5E20;}
+    .toggle-switch input:checked+.toggle-slider::before{transform:translateX(22px);}
+    .quiz-hidden{filter:blur(5px);user-select:none;cursor:pointer;transition:filter 0.2s;}
+    .quiz-hidden.revealed{filter:none;cursor:default;}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 소득별 비교</h1>
+  <div class="sub">소득세법 핵심 비교 학습</div>
+</div>
+
+<div class="container">
+  <div class="quiz-toggle-wrap">
+    <label>🎯 퀴즈 모드</label>
+    <label class="toggle-switch">
+      <input type="checkbox" id="quizMode" onchange="toggleQuizMode()">
+      <span class="toggle-slider"></span>
+    </label>
+    <span style="font-size:0.8rem;color:#888;" id="quizModeLabel">OFF — 클릭하면 정답 공개</span>
+  </div>
+  <div class="ch-filter-wrap" id="chFilterWrap"></div>
+  <div id="compareList"></div>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn" onclick="location.href='index.html'"><span class="icon">🏠</span>홈</button>
+  <button class="nav-btn" onclick="location.href='ox.html'"><span class="icon">⭕</span>OX</button>
+  <button class="nav-btn" onclick="location.href='choice.html'"><span class="icon">📝</span>4지선다</button>
+  <button class="nav-btn active" onclick="location.href='compare.html'"><span class="icon">📊</span>비교</button>
+  <button class="nav-btn" onclick="location.href='progress.html'"><span class="icon">📈</span>진도</button>
+</div>
+
+<script src="data/ch01.js"></script>
+<script src="data/ch02.js"></script>
+<script src="data/ch03.js"></script>
+<script src="data/ch04.js"></script>
+<script src="data/ch05.js"></script>
+<script src="data/ch06.js"></script>
+<script src="data/ch07.js"></script>
+<script src="data/ch08.js"></script>
+<script src="data/ch09.js"></script>
+<script src="data/ch10.js"></script>
+<script src="data/ch11.js"></script>
+<script src="app.js"></script>
+<script>
+let currentFilter='ALL',isQuizMode=false;
+
+function init(){buildFilter();renderList('ALL');}
+
+function buildFilter(){
+  const wrap=document.getElementById('chFilterWrap');wrap.innerHTML='';
+  const colors=['#E53935','#D81B60','#7B1FA2','#1565C0','#00838F','#2E7D32','#F57F17','#4E342E','#37474F','#B71C1C','#546E7A'];
+  const allBtn=document.createElement('button');allBtn.className='ch-filter-btn active';allBtn.textContent='전체';allBtn.onclick=()=>setFilter('ALL',allBtn);wrap.appendChild(allBtn);
+  CHAPTER_LIST.forEach((ch,i)=>{
+    const data=getTypeData(ch.key,'compare');if(!data.length)return;
+    const btn=document.createElement('button');btn.className='ch-filter-btn';btn.textContent=`CH${i+1}`;btn.style.borderColor=colors[i];btn.style.color=colors[i];btn.onclick=()=>setFilter(ch.key,btn);wrap.appendChild(btn);
+  });
+}
+
+function setFilter(key,btnEl){
+  currentFilter=key;document.querySelectorAll('.ch-filter-btn').forEach(b=>b.classList.remove('active'));btnEl.classList.add('active');renderList(key);
+}
+
+function renderList(filter){
+  const list=document.getElementById('compareList');list.innerHTML='';
+  let items=[];
+  if(filter==='ALL'){CHAPTER_LIST.forEach(ch=>{getTypeData(ch.key,'compare').forEach(d=>items.push({...d,_chKey:ch.key,_chLabel:ch.label}));});}
+  else{const ch=CHAPTER_LIST.find(c=>c.key===filter);getTypeData(filter,'compare').forEach(d=>items.push({...d,_chKey:filter,_chLabel:ch?.label||filter}));}
+  if(!items.length){list.innerHTML='<div style="text-align:center;color:#aaa;padding:20px;">해당 챕터에 비교 항목이 없습니다</div>';return;}
+  items.forEach((item,i)=>{
+    const card=document.createElement('div');card.className='compare-card';
+    const taxId=`tax_${i}`,adjId=`adj_${i}`;
+    const taxClass=isQuizMode?'compare-col col-tax quiz-hidden':'compare-col col-tax';
+    const adjClass=isQuizMode?'compare-col col-adj quiz-hidden':'compare-col col-adj';
+    const taxClick=isQuizMode?`onclick="reveal('${taxId}')"`:'' ;
+    const adjClick=isQuizMode?`onclick="reveal('${adjId}')"`:'' ;
+    card.innerHTML=`<div class="compare-item-title"><span style="font-size:0.75rem;color:#888;font-weight:normal;">${item._chLabel}</span><br>📋 ${item.item}</div><div class="compare-row"><div class="compare-col col-book"><span class="col-label">📗 회계/개념</span>${item.book}</div><div class="${taxClass}" id="${taxId}" ${taxClick}><span class="col-label">📕 세법 규정</span>${isQuizMode?'👆 탭하여 확인'+'<div style="display:none" class="tax-content">'+item.tax+'</div>':item.tax}</div></div><div class="${adjClass}" id="${adjId}" ${adjClick}><span class="col-label">⚙️ 세무처리/비교포인트</span>${isQuizMode?'👆 탭하여 확인'+'<div style="display:none" class="adj-content">'+item.adj+'</div>':item.adj}</div>`;
+    list.appendChild(card);
+  });
+}
+
+function toggleQuizMode(){
+  isQuizMode=document.getElementById('quizMode').checked;
+  document.getElementById('quizModeLabel').textContent=isQuizMode?'ON — 클릭하면 정답 공개':'OFF — 클릭하면 정답 공개';
+  renderList(currentFilter);
+}
+
+function reveal(id){
+  const el=document.getElementById(id);if(!el||el.classList.contains('revealed'))return;
+  el.classList.add('revealed');
+  const taxContent=el.querySelector('.tax-content'),adjContent=el.querySelector('.adj-content');
+  const label=el.querySelector('.col-label');
+  if(taxContent){el.innerHTML='';if(label)el.appendChild(label);el.innerHTML+=taxContent.textContent;}
+  else if(adjContent){el.innerHTML='';if(label)el.appendChild(label);el.innerHTML+=adjContent.textContent;}
+  showToast('✅ 정답 공개!');
+}
+
+init();
+</script>
+</body>
+</html>
