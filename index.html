@@ -55,7 +55,7 @@
     <h2>소득세법 완전정복</h2>
     <p>비밀번호를 입력하세요</p>
     <input type="password" class="lock-input" id="pwInput"
-           placeholder="0209" maxlength="20"
+           placeholder="••••" maxlength="20"
            onkeydown="if(event.key==='Enter') checkPw()">
     <button class="lock-btn" onclick="checkPw()">🔓 입장하기</button>
     <div class="wrong-msg" id="wrongMsg"></div>
@@ -139,7 +139,7 @@
 <script src="data/ch11.js"></script>
 <script src="app.js"></script>
 <script>
-const PASSWORD    = '1234';
+const PASSWORD    = '0209';
 const SESSION_KEY = 'its_auth';
 
 function checkPw() {
