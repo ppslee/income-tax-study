@@ -119,6 +119,9 @@
   <button class="nav-btn" onclick="location.href='blank.html'">
     <span class="icon">✏️</span>빈칸
   </button>
+  <button class="nav-btn" onclick="location.href='card.html'">
+    <span class="icon">🃏</span>카드
+  </button>
   <button class="nav-btn" onclick="location.href='progress.html'">
     <span class="icon">📈</span>진도
   </button>
@@ -229,7 +232,16 @@ function renderTypeGrid(chKey, color) {
 }
 
 function goToType(chKey, typeKey) {
-  const pageMap = { ox:'ox.html', choice:'choice.html', blank:'blank.html', card:'card.html', compare:'compare.html', number:'number.html', flow:'flow.html', white:'white.html' };
+  const pageMap = {
+    ox:'ox.html',
+    choice:'choice.html',
+    blank:'blank.html',
+    cards:'card.html',    // ← cards → card.html
+    compare:'compare.html',
+    numbers:'number.html', // ← numbers → number.html
+    flow:'flow.html',
+    white:'white.html'
+  };
   const page = pageMap[typeKey];
   if (!page) return;
   sessionStorage.setItem('sel_ch', chKey);
